@@ -1,0 +1,140 @@
+<html>
+<head>
+    <title>CSCI-510: Tessellation</title>
+
+    <!-- vertex Shader -->
+    <script id="shader" type="wgsl">
+        struct VertexOutput {
+                      @builtin(position) aVertexPosition: vec4<f32>,
+                      @location(0) bary: vec3<f32>,
+                      @location(1) color: vec4<f32>,
+          };
+
+         struct UniformStruct {
+             theta : vec4<f32>
+         };
+
+        struct UniformDistanceStruct {
+            distance : vec4<f32>
+        };
+
+         @group(0) @binding(0) var<uniform> uniformStruct : UniformStruct;
+         @group(0) @binding(1) var<uniform> uniformDistanceStruct : UniformDistanceStruct;
+
+         @vertex
+            fn vs_main(
+                      @location(0) inPos: vec3<f32>,
+        @location(1) bary : vec3<f32>, @location(2) color : vec4<f32>) -> VertexOutput {
+            var out: VertexOutput;
+            // Compute the sines and cosines of each rotation
+            // about each axis - must be converted into radians first
+            var c = cos(  uniformStruct.theta );
+            var s = sin(  uniformStruct.theta );
+            var dist = uniformDistanceStruct.distance;
+
+            // translation matrix
+            var trans = mat4x4<f32> ( 1.0,  0.0,  0.0,  0.0,
+                                    0.0,  1.0,  0.0,  0.0,
+                                    0.0, 0.0,  1.0,  0.0,
+                                    dist.x,  dist.y, dist.z + 0.8,  1.0 );
+            // scale matrix
+            var scaleFactor = 1.0;
+            var scale = mat4x4<f32> ( scaleFactor,  0.0,  0.0,  0.0,
+                             0.0,  scaleFactor,  0.0,  0.0,
+                             0.0, 0.0,  scaleFactor,  0.0,
+                             0.0,  0.0,  0.0,  1.0 );
+            // rotation matrices
+            var rx = mat4x4<f32> ( 1.0,  0.0,  0.0,  0.0,
+                             0.0,  c.x,  s.x,  0.0,
+                             0.0, -s.x,  c.x,  0.0,
+                             0.0,  0.0,  0.0,  1.0 );
+
+            var ry = mat4x4<f32> ( c.y,  0.0, -s.y,  0.0,
+                             0.0,  1.0,  0.0,  0.0,
+                             s.y,  0.0,  c.y,  0.0,
+                             0.0,  0.0,  0.0,  1.0 );
+
+            var rz = mat4x4<f32> ( c.z,  s.z,  0.0,  0.0,
+                            -s.z,  c.z,  0.0,  0.0,
+                             0.0,  0.0,  1.0,  0.0,
+                             0.0,  0.0,  0.0,  1.0 );
+
+            var fudgeFactor = 2.0;
+            var vertex =  trans * rz * ry * rx * scale * vec4<f32>(inPos.x, inPos.y, inPos.z, 1);
+            var zToDivideBy = 1.0 + vertex.z * fudgeFactor;
+            out.aVertexPosition = vec4(vertex.xy / zToDivideBy, vertex.zw);
+            out.bary = bary;
+            out.color = color;
+            return out;
+           }
+
+           @fragment
+           fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
+                if (in.bary.x < 0.01 || in.bary.y < 0.01 || in.bary.z < 0.01) {
+                    //return vec4 (1.0, 1.0, 1.0, 1.0);
+                }
+                return in.color;
+           }
+
+    </script>
+
+    <!-- include the shape creation functions -->
+    <script type="module" src="tessMain.js"></script>
+
+
+
+
+
+</head>
+
+<body>
+    <h1>CSCI-510: Milestone of Final!</h1>
+    <table>
+        <tr>
+            <td>
+                <canvas id="webgpu" width="910" height="1080">
+                    Your browser does not support the HTML5 canvas element.
+                </canvas>
+            </td>
+
+            <td>
+                <h3>Controls</h3>
+
+                <table border="1">
+                    <tbody>
+                        <tr>
+                            <td> enter key! </td>
+                            <td> advance season (try holding it!) </td>
+                        </tr>
+                        <tr>
+                            <td> left/right arrow key</td>
+                            <td> move camera left/right</td>
+                        </tr>
+                        <tr>
+                            <td> up/down arrow key</td>
+                            <td> move camera in/out</td>
+                        </tr>
+                        <tr>
+                            <td>z, x</td>
+                            <td>rotate camera around hill</td>
+                        </tr>
+                        <tr>
+                            <td>a, d</td>
+                            <td>move camera to the left/right</td>
+                        </tr>
+                        <tr>
+                            <td>w, s</td>
+                            <td>move camera up/down</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+            </td>
+        </tr>
+    </table>
+
+
+
+</body>
+</html>
+
