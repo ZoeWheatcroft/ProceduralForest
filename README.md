@@ -1,2 +1,2 @@
-# ProceduralForest
+# Procedural Forest
 WebGPU procedural forest
