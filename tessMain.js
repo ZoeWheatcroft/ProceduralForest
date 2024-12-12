@@ -1,6 +1,6 @@
-'use strict';
+﻿'use strict';
 
-import { makeHillGarden, initHillGarden, radians, advanceSeason} from './cgIShape.js';
+import { makeHillGarden, initHillGarden, radians, advanceSeason, makeCube} from './cgIShape.js';
 
 //import { mat3, mat3d, mat3n, mat4, quat, utils } from '../FinalProject/wgpu-matrix/dist/3.x/wgpu-matrix.module.js';
   // Global variables that are set and used
@@ -51,7 +51,7 @@ export { colors, points, bary, indices };
   var anglesReset = [0.0, 0.0, 0.0, 0.0];
   var angles = [0.0, 0.0, 0.0, 0.0];
   var distance = [0.0, 0.0, 0.0, 0.0];
-  var angleInc = 2.0;
+  var angleInc = 5.0;
   var distanceInc = 0.05;
   
   // Shapes we can draw
@@ -112,7 +112,7 @@ function setShaderInfo() {
           // usage is set up for rendering to the canvas
           usage:
               GPUTextureUsage.RENDER_ATTACHMENT,
-          alphaMode: 'premultiplied'
+          alphaMode: 'opaque'
       };
       gl.configure(canvasConfig);
   }
@@ -142,8 +142,7 @@ async function createNewShape() {
     createPipeline();
 }
 
-async function createPipeline()
-{
+async function createPipeline() {
     // create and bind vertex buffer
 
     // set up the attribute we'll use for the vertices
@@ -260,7 +259,22 @@ async function createPipeline()
                 binding: 1,
                 visibility: GPUShaderStage.VERTEX,
                 buffer: {}
-            }
+            },
+            {
+                binding: 2,
+                visibility: GPUShaderStage.FRAGMENT,
+                sampler: {}
+            },
+            {
+                binding: 3,
+                visibility: GPUShaderStage.FRAGMENT,
+                texture: {}
+            },
+            {
+                binding: 4,
+                visibility: GPUShaderStage.FRAGMENT,
+                texture: {}
+            },
         ]
     });
 
@@ -310,6 +324,75 @@ async function createPipeline()
     device.queue.writeBuffer(uniformBuffer, 0, uniformValues);
     device.queue.writeBuffer(uniformDistanceBuffer, 0, uniformDistanceValues);
 
+    //DELETE
+    const kTextureWidth = 5;
+    const kTextureHeight = 7;
+    const p = [200, 57, 247, 255];  // pink
+    const d = [252, 78, 252, 255];  // light pink
+    const y = [255, 255, 0, 255];  // yellow
+    const b = [159, 107, 232, 255];  // blue
+    const textureData = new Uint8Array([
+        b, p, p, p, y,
+        b, d, d, d, y,
+        b, d, d, d, y,
+        b, d, y, y, y,
+        b, d, d, d, y,
+        b, d, d, d, y,
+        b, p, p, p, y,
+    ].flat());
+
+    const texture = device.createTexture({
+        label: 'yellow F on red',
+        size: [kTextureWidth, kTextureHeight],
+        format: 'rgba8unorm',
+        usage:
+            GPUTextureUsage.TEXTURE_BINDING |
+            GPUTextureUsage.COPY_DST,
+    });
+    device.queue.writeTexture(
+        { texture },
+        textureData,
+        { bytesPerRow: kTextureWidth * 4 },
+        { width: kTextureWidth, height: kTextureHeight },
+    );
+
+    const barkTextureWidth = 7;
+    const barkTextureHeight = 7;
+    const l = [92, 56, 21, 255]; //brown ish 
+    const z = [171, 140, 2, 255];  // zellow
+    const m = [0, 200, 200, 255];  // blue
+    const barkTextureData = new Uint8Array([
+        l, z, l, z, l, z, l,
+        l, z, l, z, l, z, l,
+        l, z, l, z, l, z, l,
+        l, z, l, z, l, z, l,
+        l, z, l, z, l, z, l,
+        l, z, l, z, l, z, l,
+        l, z, l, z, l, z, l,
+    ].flat());
+
+    const barkTexture = device.createTexture({
+        label: 'a b c',
+        size: [barkTextureWidth, barkTextureHeight],
+        format: 'rgba8unorm',
+        usage:
+            GPUTextureUsage.TEXTURE_BINDING |
+            GPUTextureUsage.COPY_DST,
+    });
+    device.queue.writeTexture(
+        { texture: barkTexture },
+        barkTextureData,
+        { bytesPerRow: barkTextureWidth * 4 },
+        { width: barkTextureWidth, height: barkTextureHeight },
+    );
+
+    const sampler = device.createSampler({
+        addressModeU: 'clamp-to-edge',
+        addressModeU: 'clamp-to-edge',
+        magFilter: 'linear',
+    })
+
+
     uniformBindGroup = device.createBindGroup({
         layout: pipeline.getBindGroupLayout(0),
         entries: [
@@ -322,29 +405,22 @@ async function createPipeline()
                 binding: 1,
                 resource: { buffer: uniformDistanceBuffer },
             },
+            {
+                binding: 2,
+                resource: sampler
+            },
+            {
+                binding: 3,
+                resource: texture.createView()
+            },
+            {
+                binding: 4,
+                resource: barkTexture.createView()
+            },
         ],
     });
 
-    const bindGroupLayout = device.createBindGroupLayout({
-        entries: [
-            {
-                binding: 0,
-                visibility: GPUShaderStage.FRAGMENT,
-                sampler: {
-                    type: 'non-filtering',
-                },
-            },
-            {
-                binding: 1,
-                visibility: GPUShaderStage.FRAGMENT,
-                texture: {
-                    sampleType: 'unfilterable-float',
-                    viewDimension: '2d',
-                    multisampled: false,
-                },
-            },
-        ],
-    });
+
 
     // indicate a redraw is required.
     updateDisplay = true;
@@ -431,8 +507,9 @@ function draw() {
 function update() {
     console.log("update");
 
-    draw();
     createHillGarden();
+    draw();
+    makeCube(2);
 }
 
 
@@ -458,8 +535,9 @@ async function handleKey(event) {
     else if (key == 's' && distance[1] > -2)
         distance[1] -= distanceInc;
 
-    else if (key == "Enter")
+    else if (key == "Enter") {
         advanceSeason();
+    }
 
 
     // shape selection
@@ -526,6 +604,29 @@ async function init() {
 
 }
 
+function fetchAndCreateBitmap(url) {
+    // Create an async helper function
+    const fetchHelper = async () => {
+        const response = await fetch(url);
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const blob = await response.blob(); // Get the response as a blob
+        return createImageBitmap(blob, {colorSpaceConversion: 'none'});   
+    };
+
+    // Use the helper and handle the promise
+    return fetchHelper()
+        .then((bitmap) => {
+            console.log("Bitmap created:", bitmap); // Use the bitmap
+            return bitmap; // Return the bitmap for further use
+        })
+        .catch((error) => {
+            console.error("Error fetching or creating bitmap:", error);
+        });
+}
 
 
 window.onload = init;

@@ -8,6 +8,7 @@
                       @builtin(position) aVertexPosition: vec4<f32>,
                       @location(0) bary: vec3<f32>,
                       @location(1) color: vec4<f32>,
+                      @location(2) texcoord: vec2<f32>,
           };
 
          struct UniformStruct {
@@ -20,6 +21,9 @@
 
          @group(0) @binding(0) var<uniform> uniformStruct : UniformStruct;
          @group(0) @binding(1) var<uniform> uniformDistanceStruct : UniformDistanceStruct;
+         @group(0) @binding(2) var ourSampler: sampler;
+         @group(0) @binding(3) var leafTexture: texture_2d<f32>;
+         @group(0) @binding(4) var barkTexture: texture_2d<f32>;
 
          @vertex
             fn vs_main(
@@ -73,7 +77,11 @@
                 if (in.bary.x < 0.01 || in.bary.y < 0.01 || in.bary.z < 0.01) {
                     //return vec4 (1.0, 1.0, 1.0, 1.0);
                 }
-                return in.color;
+                let zero: vec4<f32> = vec4<f32>(0.0, 0.0, 0.0, 0.0);
+
+                let v: vec2<f32> = vec2<f32>(in.bary.x, in.bary.y);
+
+                return select(in.color, select(textureSample(leafTexture, ourSampler, v), textureSample(barkTexture, ourSampler, v), in.color.x < -1), in.color.x < 0);
            }
 
     </script>

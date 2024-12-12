@@ -3,12 +3,12 @@
   "WorkspaceRootPath": "C:\\Users\\Zoe\\Documents\\RIT\\csci510\\FinalProject\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Zoe\\Documents\\RIT\\csci510\\FinalProject\\tessMain.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:tessMain.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Zoe\\Documents\\RIT\\csci510\\FinalProject\\cgIShape.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
       "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:cgIShape.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Zoe\\Documents\\RIT\\csci510\\FinalProject\\tessMain.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:tessMain.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Zoe\\Documents\\RIT\\csci510\\FinalProject\\final.html||{40D31677-CBC0-4297-A9EF-89D907823A98}",
@@ -34,7 +34,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 213,
-          "SelectedChildIndex": 6,
+          "SelectedChildIndex": 4,
           "Children": [
             {
               "$type": "Bookmark",
@@ -50,8 +50,7 @@
               "RelativeToolTip": "wgpu-matrix\\src\\vec4-impl.ts",
               "ViewState": "AQIAAIMCAAAAAAAAAAAhwIsCAAA+AAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
-              "WhenOpened": "2024-12-11T04:16:38.904Z",
-              "EditorCaption": ""
+              "WhenOpened": "2024-12-11T04:16:38.904Z"
             },
             {
               "$type": "Document",
@@ -79,15 +78,28 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 0,
               "Title": "cgIShape.js",
               "DocumentMoniker": "C:\\Users\\Zoe\\Documents\\RIT\\csci510\\FinalProject\\cgIShape.js",
               "RelativeDocumentMoniker": "cgIShape.js",
               "ToolTip": "C:\\Users\\Zoe\\Documents\\RIT\\csci510\\FinalProject\\cgIShape.js",
               "RelativeToolTip": "cgIShape.js",
-              "ViewState": "AQIAAEMBAAAAAAAAAAAIwFIBAAAQAAAA",
+              "ViewState": "AQIAAI8AAAAAAAAAAAAYwJYAAAAAAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
               "WhenOpened": "2024-11-27T23:14:59.943Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "tessMain.js",
+              "DocumentMoniker": "C:\\Users\\Zoe\\Documents\\RIT\\csci510\\FinalProject\\tessMain.js",
+              "RelativeDocumentMoniker": "tessMain.js",
+              "ToolTip": "C:\\Users\\Zoe\\Documents\\RIT\\csci510\\FinalProject\\tessMain.js",
+              "RelativeToolTip": "tessMain.js",
+              "ViewState": "AQIAAAkCAAAAAAAAAAAmwBoCAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2024-11-30T23:32:33.593Z",
               "EditorCaption": ""
             },
             {
@@ -98,22 +110,9 @@
               "RelativeDocumentMoniker": "final.html",
               "ToolTip": "C:\\Users\\Zoe\\Documents\\RIT\\csci510\\FinalProject\\final.html",
               "RelativeToolTip": "final.html",
-              "ViewState": "AQIAACAAAAAAAAAAAAAmwDQAAAAzAAAA",
+              "ViewState": "AQIAAGEAAAAAAAAAAAAwwG0AAAAAAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001512|",
               "WhenOpened": "2024-12-11T03:19:16.7Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "tessMain.js",
-              "DocumentMoniker": "C:\\Users\\Zoe\\Documents\\RIT\\csci510\\FinalProject\\tessMain.js",
-              "RelativeDocumentMoniker": "tessMain.js",
-              "ToolTip": "C:\\Users\\Zoe\\Documents\\RIT\\csci510\\FinalProject\\tessMain.js",
-              "RelativeToolTip": "tessMain.js",
-              "ViewState": "AQIAAHYBAAAAAAAAAAAIwIMBAAAVAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
-              "WhenOpened": "2024-11-30T23:32:33.593Z",
               "EditorCaption": ""
             }
           ]
