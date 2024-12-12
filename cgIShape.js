@@ -17,13 +17,15 @@ var season = 0.3;
 var maxTrees = 10;
 
 class Tree {
-    constructor(origin, trunkHeight, height, color, branchCount, diameter) {
+    constructor(origin, trunkHeight, height, color, branchCount, diameter, trans, rotAngles) {
         this.origin = origin;
         this.trunkHeight = trunkHeight;
         this.height = height;
         this.color = color;
         this.branchCount = branchCount;
         this.diameter = diameter;
+        this.trans = trans;
+        this.rotAngles = rotAngles;
     }
 }
 
@@ -76,7 +78,7 @@ function drawCubeFace(originCoord, xChange, yChange, zChange, subdivisions) {
 }
 
 //draw a column of cylinder faces
-function drawCylinderFace(originCoord, xChange, yChange, zChange, subdivisions, color = [1, 0, 0], trans = undefined) {
+function drawCylinderFace(originCoord, xChange, yChange, zChange, subdivisions, color = [1, 0, 0], trans = undefined, offset = undefined) {
     var polyOriginCoord = [0, 0, 0];
     for (var c = 0; c < subdivisions; c++) {
         if (xChange == 0) {
@@ -85,12 +87,12 @@ function drawCylinderFace(originCoord, xChange, yChange, zChange, subdivisions, 
         else {
             polyOriginCoord = [originCoord[0], originCoord[1] + c * yChange / subdivisions, originCoord[2]];
         }
-        drawSquarePolygon(polyOriginCoord, xChange, yChange / subdivisions, zChange, color, trans);
+        drawSquarePolygon(polyOriginCoord, xChange, yChange / subdivisions, zChange, color, trans, offset);
     }
 }
 
 //draw two triangles to create a single square shape
-function drawSquarePolygon(originCoord, xChange, yChange, zChange, color = [1, 0, 0], trans = undefined) {
+function drawSquarePolygon(originCoord, xChange, yChange, zChange, color = [1, 0, 0], trans = undefined, offset = undefined) {
     var xOrigin = originCoord[0];
     var yOrigin = originCoord[1];
     var zOrigin = originCoord[2];
@@ -101,14 +103,14 @@ function drawSquarePolygon(originCoord, xChange, yChange, zChange, color = [1, 0
             xOrigin, yOrigin + yChange, zOrigin,
             xOrigin + xChange, yOrigin + yChange, zOrigin + zChange,
             color,
-            trans)
+            trans, offset)
 
         //bottom triangle
         addTriangle(xOrigin, yOrigin, zOrigin,
             xOrigin + xChange, yOrigin + yChange, zOrigin + zChange,
             xOrigin + xChange, yOrigin, zOrigin + zChange,
             color,
-            trans)
+            trans, offset)
     }
     else {
         //top triangle
@@ -116,13 +118,13 @@ function drawSquarePolygon(originCoord, xChange, yChange, zChange, color = [1, 0
             xOrigin, yOrigin + yChange, zOrigin + zChange,
             xOrigin + xChange, yOrigin + yChange, zOrigin + zChange,
             color,
-            trans)
+            trans, offset)
         //draw bottom triangle
         addTriangle(xOrigin, yOrigin, zOrigin,
             xOrigin + xChange, yOrigin + yChange, zOrigin + zChange,
             xOrigin + xChange, yOrigin, zOrigin,
             color,
-            trans)
+            trans, offset)
     }
 }
 
@@ -136,14 +138,15 @@ function makeTree(n) {
     let trunkHeight = tree.trunkHeight;
     let color = tree.color;
     let diameter = tree.diameter;
+    let rotAngles = tree.rotAngles;
 
     //make trunk with a random length
-    makeBranch(origin.slice(), [0, 0, 0], diameter, trunkHeight, 5, 1, color, 0, true);
+    //makeBranch(origin.slice(), [0, 0, 0], diameter, trunkHeight, 7, 1, color, 0, true, rotAngles);
     //make rest of tree w branches
     let treeOrigin = origin.slice();
     treeOrigin.y += tree.trunkHeight / 2;
-    var trans = mat4.identity();
-    makeBranch(treeOrigin, [0, 0, 0], diameter, treeHeight, 5, 1, color, branchCount, trans);
+    var trans = tree.trans;
+    makeBranch(treeOrigin, [0, 0, 0], diameter, treeHeight, 5, 1, color, branchCount, trans, rotAngles);
 }
 
 //code that creates the triangles for a cylinder with diameter 0.5
@@ -151,12 +154,17 @@ function makeTree(n) {
 // around the base and top of the cylinder (given by radialdivision) and
 // the number of subdivisions along the surface of the cylinder given by
 //heightdivision.
-function makeBranch(origin, angle, diameter, height, radialdivision, heightdivision, color = [1, 0, 0], branchCount, trans, isTrunk = false) {
+function makeBranch(origin, angle, diameter, height, radialdivision, heightdivision, color = [1, 0, 0], branchCount, trans, rotAngles, isTrunk = false) {
 
-    //we are given origin of BOTTOM of cylinder, adjust this to be the middle 
+    //we are given origin of BOTTOM of cylinder, adjust this to be the middle
     //origin[1] = origin[1] + height / 2;
 
-    //interpolate season and bark color to get seasonal bark! 
+    //interpolate season and bark color to get seasonal bark!
+
+    var offset = [];
+    offset.push(-origin[0]);
+    offset.push(-origin[1]);
+    offset.push(-origin[2]);
 
     //we are given origin of BOTTOM of cylinder, adjust this to be the middle 
     origin[1] = origin[1] + height / 2;
@@ -167,7 +175,7 @@ function makeBranch(origin, angle, diameter, height, radialdivision, heightdivis
     //TODO fix bug where it randomly grabs other points???
     let topCircleOrigin = origin.slice();
     topCircleOrigin.y += height / 2;
-    var lst = drawCircle(topCircleOrigin, radialdivision, diameter, false, color);
+    var lst = drawCircle(topCircleOrigin, radialdivision, diameter, false, color, trans, offset);
     xRadialPoints = lst[0];
     zRadialPoints = lst[1];
     //TODO do a transformation on the branches so that they are spitting off at an angle instead of simply being next to them
@@ -182,14 +190,23 @@ function makeBranch(origin, angle, diameter, height, radialdivision, heightdivis
             zRadialPoints[(i + 1) % radialdivision] - zRadialPoints[i],
             heightdivision,
             color,
-            trans);
+            trans, offset);
     }
 
-    drawCircle([origin[0], -height / 2 + origin[1], origin[2]], radialdivision, diameter, true, color);
+    var rot = mat4.copy(trans);
+    var dir = vec4.create(0, height, 0, 0);
+    dir = vec4.transformMat4(dir, rot);
+
+    //drawCircle([origin[0], -height / 2 + origin[1], origin[2]], radialdivision, diameter, true, color, trans, offset);
 
     if (branchCount > 0) {
         var newDiameter = diameter / 2;
-        var newOrigin = [origin[0], origin[1] + height / 2, origin[2]];
+        var leftOrigin = [origin[0], origin[1] - height/2, origin[2]];
+        for (var i = 0; i < 3; i++) {
+            leftOrigin[i] += dir[i];
+        }
+        //get modified x and y w/ angle
+
         //TODO: add to new origin w/ unit vector of angle * height
         var newHeight = height / 2;
         var newAngle = angle;
@@ -197,20 +214,26 @@ function makeBranch(origin, angle, diameter, height, radialdivision, heightdivis
 
         // calculate transform mat of left branch
         var leftTrans = mat4.copy(trans);
-        mat4.rotateZ(leftTrans, -Math.PI * 0.1, leftTrans);
-        makeBranch(newOrigin, newAngle, newDiameter, newHeight, radialdivision, heightdivision, color, branchCount, leftTrans);
+        leftTrans = fullRotate(leftTrans, rotAngles);
+        makeBranch(leftOrigin, newAngle, newDiameter, newHeight, radialdivision, heightdivision, color, branchCount, leftTrans, [20, 90, 45]);
 
         //calculate transform mat of right branch
         var rightTrans = mat4.copy(trans);
-        mat4.rotateZ(rightTrans, Math.PI * 0.1, rightTrans);
-        var rightOrigin = [origin[0], origin[1] + height / 2, origin[2]];
-        makeBranch(rightOrigin, newAngle, newDiameter, newHeight, radialdivision, heightdivision, color, branchCount, rightTrans);
+        rotAngles[2] = -rotAngles[2];
+        rightTrans = fullRotate(rightTrans, rotAngles);
+
+        var rightOrigin = [origin[0], origin[1] - height / 2, origin[2]];
+        for (var i = 0; i < 3; i++) {
+            rightOrigin[i] += dir[i];
+        }
+        makeBranch(rightOrigin, newAngle, newDiameter, newHeight, radialdivision, heightdivision, color, branchCount, rightTrans, [20, 90, 45]);
     }
     else if (!isTrunk){
-        newOrigin = origin;
-        newOrigin.x -= leafDiameter / 2 - diameter / 2;
-        newOrigin[1] += height/2;
-        var leafDiameter = 3*diameter;
+        var newOrigin = [origin[0], origin[1] - height / 2, origin[2]];
+        for (var i = 0; i < 3; i++) {
+            newOrigin[i] += dir[i];
+        }
+        var leafDiameter = 3*diameter + 0.05;
         makeLeaf(newOrigin, leafDiameter);
     }
 }
@@ -227,8 +250,8 @@ function makeLeaf(origin, diameter, color) {
     if (season < 0.3) {
         diameter = diameter * (season/0.3);
     }
-    color = valueToColor(season);
-    color[1] += 0.3;
+    var color = valueToColor(season);
+    color[1] += 0.2;
 
     var xRadialPoints = [];
     var yRadialPoints = [];
@@ -266,7 +289,7 @@ function makeLeaf(origin, diameter, color) {
         
     }
 }
-function drawCircle(origin, radialdivision, diameter, clockwise, color = [1, 0, 0], trans = undefined) {
+function drawCircle(origin, radialdivision, diameter, clockwise, color = [1, 0, 0], trans = undefined, offset = undefined) {
     var radius = diameter / 2;
 
     var xRadialPoints = [];
@@ -284,14 +307,14 @@ function drawCircle(origin, radialdivision, diameter, clockwise, color = [1, 0, 
             xRadialPoints[xRadialPoints.length - 1] + origin[0], origin[1], zRadialPoints[zRadialPoints.length - 1] + origin[2],
             xRadialPoints[0] + origin[0], origin[1], zRadialPoints[0] + origin[2],
             color,
-            trans);
+            trans, offset);
     }
     else {
         addTriangle(origin[0], origin[1], origin[2],
             xRadialPoints[0] + origin[0], origin[1], zRadialPoints[0] + origin[2],
             xRadialPoints[xRadialPoints.length - 1] + origin[0], origin[1], zRadialPoints[zRadialPoints.length - 1] + origin[2],
             color,
-            trans);
+            trans, offset);
     }
 
     for (var i = 0; i < xRadialPoints.length - 1; i++) {
@@ -300,14 +323,14 @@ function drawCircle(origin, radialdivision, diameter, clockwise, color = [1, 0, 
                 xRadialPoints[i] + origin[0], origin[1], origin[2] + zRadialPoints[i],
                 xRadialPoints[i + 1] + origin[0], origin[1], origin[2] + zRadialPoints[i + 1],
                 color,
-                trans);
+                trans, offset);
         }
         else {
             addTriangle(origin[0], origin[1], origin[2],
                 xRadialPoints[i + 1] + origin[0], origin[1], origin[2] + zRadialPoints[i + 1],
                 xRadialPoints[i] + origin[0], origin[1], origin[2] + zRadialPoints[i],
                 color,
-                trans);
+                trans,offset);
         }
     }
     return [xRadialPoints, zRadialPoints];
@@ -539,10 +562,13 @@ export function radians(degrees)
   return degrees * (pi/180);
 }
 
-function addTriangle (x0,y0,z0,x1,y1,z1,x2,y2,z2, color = [0.2, 0.7, 0.5], transformMat = undefined) {
+function addTriangle (x0,y0,z0,x1,y1,z1,x2,y2,z2, color = [0.2, 0.7, 0.5], transformMat = undefined, offsetTrans = undefined) {
 
     if (transformMat == undefined) {
         transformMat = mat4.identity();
+    }
+    if (offsetTrans == undefined) {
+        offsetTrans = [0, 0, 0];
     }
     
     var nverts = points.length / 3;
@@ -550,7 +576,17 @@ function addTriangle (x0,y0,z0,x1,y1,z1,x2,y2,z2, color = [0.2, 0.7, 0.5], trans
     //transform vertex 
     var v0 = vec4.create(x0, y0, z0, 1);
 
+    //translate to offset from origin
+    for (var i = 0; i < 3; i++) {
+        v0[i] += offsetTrans[i];
+    }
+
     v0 = vec4.transformMat4(v0, transformMat);
+
+    //translate back
+    for (var i = 0; i < 3; i++) {
+        v0[i] -= offsetTrans[i];
+    }
 
     // push first vertex
     points.push(v0[0]);  bary.push (1.0);
@@ -564,8 +600,15 @@ function addTriangle (x0,y0,z0,x1,y1,z1,x2,y2,z2, color = [0.2, 0.7, 0.5], trans
     colors.push(color[2]);
 
     var v1 = vec4.create(x1, y1, z1, 1);
+    //translate to offset from origin
+    for (var i = 0; i < 3; i++) {
+        v1[i] += offsetTrans[i];
+    }
     v1 = vec4.transformMat4(v1, transformMat);
-
+    //translate back
+    for (var i = 0; i < 3; i++) {
+        v1[i] -= offsetTrans[i];
+    }
     // push second vertex
     points.push(v1[0]); bary.push (0.0);
     points.push(v1[1]); bary.push (1.0);
@@ -578,8 +621,15 @@ function addTriangle (x0,y0,z0,x1,y1,z1,x2,y2,z2, color = [0.2, 0.7, 0.5], trans
     colors.push(color[2]);
 
     var v2 = vec4.create(x2, y2, z2, 1);
+    //translate to offset from origin
+    for (var i = 0; i < 3; i++) {
+        v2[i] += offsetTrans[i];
+    }
     v2 = vec4.transformMat4(v2, transformMat);
-
+    //translate back
+    for (var i = 0; i < 3; i++) {
+        v2[i] -= offsetTrans[i];
+    }
     // push third vertex
     points.push(v2[0]); bary.push (0.0);
     points.push(v2[1]); bary.push (0.0);
@@ -626,7 +676,7 @@ function valueToColor(value) {
 }
 
 export function makeHillGarden() {
-    makeHill(30, 30);
+    makeHill(15, 20);
 
     for (var i = 0; i < trees.length; i++) {
         makeTree(i);
@@ -635,19 +685,27 @@ export function makeHillGarden() {
 
 function initTree() {
     var x = 0; var z = 0;
-    var y = hillHeight / 2 - 0.1 + hillOriginY;
+    var y = hillHeight / 2 - 0.02 + hillOriginY;
     var origin = [x, y, z];
 
-    var treeHeight = 0.8 * Math.random() + 0.1;
-    var branchCount = Math.round(Math.random() * 5);
-    var trunkHeight = Math.random() * 0.2;
-    var diameter = Math.random() * 0.03 + 0.08;
+    var treeHeight = 0.4 * Math.random() + 0.05;
+    var branchCount = Math.round(Math.random() * 5) + 2;
+    //TODO remove
+    var trunkHeight = Math.random() * 0.05;
+    var trunkHeight = Math.random() * 0.05;
+    var diameter = Math.random() * 0.01 + 0.03;
 
     var seasonColor = valueToColor(season);
     var barkColor = [0.8, 0.4, 0.2];
     var color = barkColor;
     color = color.map((c, i) => c + 0.3 * (seasonColor[i] - c));
-    var tree = new Tree(origin, trunkHeight, treeHeight, color, branchCount, diameter);
+
+    var trans = mat4.identity();
+    mat4.rotateY(trans, radians(90), trans);
+
+    var rotAngles = [20, 90, 45];
+
+    var tree = new Tree(origin, trunkHeight, treeHeight, color, branchCount, diameter, trans, rotAngles);
 
     trees.push(tree);
 }
@@ -679,4 +737,12 @@ function ageTrees() {
         trees[i].height += trees[i].height * 0.5;
         trees[i].diameter += trees[i].diameter * 0.05;
     }
+}
+
+//rotate a matrix by x, y, z, angles in the XYZ axises and return mat
+function fullRotate(m, rotation) {
+    mat4.rotateX(m, radians(rotation[0]), m);
+    mat4.rotateY(m, radians(rotation[1]), m);
+    mat4.rotateZ(m, radians(rotation[2]), m);
+    return m;
 }

@@ -51,7 +51,7 @@ export { colors, points, bary, indices };
   var anglesReset = [0.0, 0.0, 0.0, 0.0];
   var angles = [0.0, 0.0, 0.0, 0.0];
   var distance = [0.0, 0.0, 0.0, 0.0];
-  var angleInc = 5.0;
+  var angleInc = 2.0;
   var distanceInc = 0.05;
   
   // Shapes we can draw
@@ -112,7 +112,7 @@ function setShaderInfo() {
           // usage is set up for rendering to the canvas
           usage:
               GPUTextureUsage.RENDER_ATTACHMENT,
-          alphaMode: 'opaque'
+          alphaMode: 'premultiplied'
       };
       gl.configure(canvasConfig);
   }
