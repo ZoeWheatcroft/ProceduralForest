@@ -8,8 +8,8 @@ import {points, bary, indices, colors } from './tessMain.js';
 import { vec4, mat4 } from './wgpu-matrix/dist/3.x/wgpu-matrix.module.js';
 
 let rowRadiusLst = [0.0];
-var hillHeight = 1;
-var hillDiameter = 5.0;
+var hillHeight = 1.0;
+var hillDiameter = 4.0;
 var hillOriginY = -1.5;
 
 var season = 0.3;
@@ -31,7 +31,7 @@ class Tree {
 
 var trees;
 
-export function makeCube (subdivisions)  {
+function makeCube (subdivisions)  {
     
     // fill in your code here.
     // delete the code below first.
@@ -60,7 +60,7 @@ export function makeCube (subdivisions)  {
 
 // draw a whole cube face
 function drawCubeFace(originCoord, xChange, yChange, zChange, subdivisions) {
-    var polyOriginCoord = [0, 0, 0];
+    polyOriginCoord = [0, 0, 0];
     for (var r = 0; r < subdivisions; r++) {
         for (var c = 0; c < subdivisions; c++) {
             if (yChange == 0) {
@@ -149,7 +149,6 @@ function makeTree(n) {
     makeBranch(treeOrigin, [0, 0, 0], diameter, treeHeight, 5, 1, color, branchCount, trans, rotAngles);
 }
 
-
 //code that creates the triangles for a cylinder with diameter 0.5
 // and height of 0.5 (centered at the origin) with the number of subdivisions
 // around the base and top of the cylinder (given by radialdivision) and
@@ -230,23 +229,27 @@ function makeBranch(origin, angle, diameter, height, radialdivision, heightdivis
         makeBranch(rightOrigin, newAngle, newDiameter, newHeight, radialdivision, heightdivision, color, branchCount, rightTrans, [20, 90, 45]);
     }
     else if (!isTrunk){
-        var newOrigin = [origin[0], origin[1] - height/2, origin[2]];
+        var newOrigin = [origin[0], origin[1] - height / 2, origin[2]];
         for (var i = 0; i < 3; i++) {
             newOrigin[i] += dir[i];
         }
-        makeFlower(newOrigin, 3*diameter + 0.05, color);
-        var leafDiameter = 3*diameter + 0.01;
-        makeLeaf(newOrigin, leafDiameter, leafDiameter * 2, trans, offset);
+        var leafDiameter = 3 * diameter + 0.03;
+        var flowerDiameter = 3 * diameter + 0.05;
+        makeFlower(origin, leafDiameter, color);
+
+        makeLeaf(newOrigin, leafDiameter, 0.1, [-1, -1, -1], trans, offset);
         fullRotate(trans, rotAngles);
-        makeLeaf(newOrigin, leafDiameter, leafDiameter*2, trans, offset);
+        makeLeaf(newOrigin, leafDiameter, 0.1, [-1, -1, -1], trans, offset);
     }
 }
 
-function makeLeaf(origin, diameter, length, trans, offset) {
+function makeLeaf(origin, diameter, length, color, trans, offset) {
 
-    //generate color based on season
-    //if season between 0.85 and 0.95, dont draw
-    if (season > 0.75 && season < 1) {
+    offset[0] = -origin[0];
+    offset[1] = -origin[1];
+    offset[2] = -origin[2];
+
+    if (season > 0.65 && season < 1) {
         return;
     }
     if (season < 0.3) {
@@ -257,50 +260,50 @@ function makeLeaf(origin, diameter, length, trans, offset) {
 
     var radius = diameter / 2;
 
-    offset[0] = -origin[0];
-    offset[1] = -origin[1];
-    offset[2] = -origin[2];
-
-    addTriangle(origin[0], origin[1], origin[2],
-        origin[0] - radius, origin[1] + length*0.5, origin[2],
-        origin[0] + radius, origin[1] + length*0.5, origin[2],
-        color,
-        trans, offset);
-    addTriangle(origin[0] - radius, origin[1] + length * 0.5, origin[2],
-        origin[0], origin[1] + length * 1.5, origin[2],
-        origin[0] + radius, origin[1] + length * 0.5, origin[2],
-        color,
-        trans, offset);
-
     addTriangle(
-        origin[0] - radius, origin[1] + length*0.5, origin[2],
         origin[0], origin[1], origin[2],
-        origin[0] + radius, origin[1] + length*0.5, origin[2],
-        color,
-        trans, offset);
+        origin[0] - radius, origin[1] + length / 2, origin[2],
+        origin[0] + radius, origin[1] + length / 2, origin[2],
+        color, trans, offset);
+    addTriangle(
+        origin[0] - radius, origin[1] + length / 2, origin[2],
+        origin[0], origin[1] + length * 1.5, origin[2],
+        origin[0] + radius, origin[1] + length / 2, origin[2],
+        color, trans, offset)
+    //other side, counter clockwise
+    addTriangle(
+        origin[0] - radius, origin[1] + length / 2, origin[2],
+        origin[0], origin[1], origin[2],
+        
+        origin[0] + radius, origin[1] + length / 2, origin[2],
+        color, trans, offset);
     addTriangle(
         origin[0], origin[1] + length * 1.5, origin[2],
-        origin[0] - radius, origin[1] + length * 0.5, origin[2],
-        origin[0] + radius, origin[1] + length * 0.5, origin[2],
-        color,
-        trans, offset);
+        origin[0] - radius, origin[1] + length / 2, origin[2],
+        
+        origin[0] + radius, origin[1] + length / 2, origin[2],
+        color, trans, offset)
 }
 
 //TODO tie the color of the leaves to the individual season in some way
 function makeFlower(origin, diameter, color) {
+
+    //generate color based on season
+    //if season between 0.85 and 0.95, dont draw
     if (season > 0.45 && season < 1) {
         return;
     }
     if (season < 0.3) {
-        diameter = diameter * (season / 0.3);
+        diameter = diameter * (season/0.3);
     }
-    //signal to use texture instead
+
+    //signal to use texture 
     color = [-1, -1, -1];
 
     var xRadialPoints = [];
     var yRadialPoints = [];
 
-    var radialdivision = 5;
+    var radialdivision = 10;
 
     var radius = diameter;
 
@@ -732,21 +735,21 @@ function initTree() {
     var y = hillHeight / 2 - 0.02 + hillOriginY;
     var origin = [x, y, z];
 
-    var treeHeight = 0.8 * Math.random() + 0.1;
+    var treeHeight = 0.4 * Math.random() + 0.15;
     var branchCount = Math.round(Math.random() * 2) + 2;
     //TODO remove
     var trunkHeight = Math.random() * 0.05;
-    var diameter = Math.random() * 0.01 + 0.1;
+    var trunkHeight = Math.random() * 0.05;
+    var diameter = Math.random() * 0.02 + 0.045;
 
     var seasonColor = valueToColor(season);
     var barkColor = [-2, -2, -2];
     var color = barkColor;
 
-
     var trans = mat4.identity();
     mat4.rotateY(trans, radians(90), trans);
 
-    var rotAngles = [Math.random()*50, Math.random()*180, Math.random()*30 + 30];
+    var rotAngles = [Math.floor(Math.random() * 81) - 40, Math.floor(Math.random() * 181) - 90, 45 + Math.floor(Math.random() * 20) -10];
 
     var tree = new Tree(origin, trunkHeight, treeHeight, color, branchCount, diameter, trans, rotAngles);
 
@@ -777,8 +780,8 @@ export function advanceSeason() {
 function ageTrees() {
     for (var i = 0; i < trees.length; i++) {
         trees[i].branchCount += 1;
-        trees[i].height += trees[i].height * 0.2;
-        trees[i].diameter += trees[i].diameter * 0.5;
+        trees[i].height += trees[i].height * 0.5;
+        trees[i].diameter += trees[i].diameter * 0.05;
     }
 }
 

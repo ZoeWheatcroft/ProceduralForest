@@ -1,6 +1,6 @@
 ﻿'use strict';
 
-import { makeHillGarden, initHillGarden, radians, advanceSeason, makeCube} from './cgIShape.js';
+import { makeHillGarden, initHillGarden, radians, advanceSeason} from './cgIShape.js';
 
 //import { mat3, mat3d, mat3n, mat4, quat, utils } from '../FinalProject/wgpu-matrix/dist/3.x/wgpu-matrix.module.js';
   // Global variables that are set and used
@@ -327,8 +327,8 @@ async function createPipeline() {
     //DELETE
     const kTextureWidth = 5;
     const kTextureHeight = 7;
-    const p = [200, 57, 247, 255];  // pink
-    const d = [252, 78, 252, 255];  // light pink
+    const p = [200, 17, 247, 255];  // pink
+    const d = [255, 58, 252, 255];  // light pink
     const y = [255, 255, 0, 255];  // yellow
     const b = [159, 107, 232, 255];  // blue
     const textureData = new Uint8Array([
@@ -509,7 +509,7 @@ function update() {
 
     createHillGarden();
     draw();
-    makeCube(2);
+    //makeCube(2);
 }
 
 
